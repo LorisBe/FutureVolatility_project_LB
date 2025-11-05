@@ -1,0 +1,15 @@
+# python
+__pycache__/
+*.pyc
+.env
+.venv/
+.ipynb_checkpoints/
+
+# data & results
+data/*/
+!data/sample_holdings.csv
+results/**
+!results/.gitkeep
+
+# OS/editor
+.DS_Store

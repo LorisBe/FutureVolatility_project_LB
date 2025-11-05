@@ -1,0 +1,4 @@
+account_id,asset_id,asset_type,ticker,currency,quantity,avg_cost
+acc1,asset_equity,Equity,AAPL,USD,10,150
+acc1,asset_etf,ETF,SPY,USD,5,400
+acc1,asset_crypto,Crypto,BTC-USD,USD,0.02,35000
