@@ -5,20 +5,20 @@ REQUIRED_COLS = [
     "account_id", "asset_type", "ticker", "currency", "quantity", "avg_cost"
 ]
 
-def load_holdings(filepath="data/sample_holdings.csv") -> pd.DataFrame:
+def load_holdings(filepath="data/sample_holdings.csv") -> pd.DataFrame: #use load_holdings() with own CSV so it works
     """
     Read a holding CSV and validate required columns. It will return a nice DataFrame you can display/use elsewhere.
     """
-    df = pd.read_csv(filepath)
-    missing = [c for c in REQUIRED_COLS if c not in df.columns]
+    df = pd.read_csv(filepath) #read the CSV file into a DataFrame
+    missing = [c for c in REQUIRED_COLS if c not in df.columns] #check if any column is missing
     if missing:
         raise ValueError(f"Missing columns in holdings CSV: {missing}")
-    df["ticker"] = df["ticker"].astype(str)
-    df["quantity"] = pd.to_numeric(df["quantity"], errors="coerce")
+    df["ticker"] = df["ticker"].astype(str) #put this column in str
+    df["quantity"] = pd.to_numeric(df["quantity"], errors="coerce") #convert into numeric
     df["avg_cost"] = pd.to_numeric(df["avg_cost"], errors="coerce")
 
     if df["quantity"].isna().any() or df["avg_cost"].isna().any():
-        raise ValueError("Found non-numeric values in 'quantity' or 'avg_cost'.")
+        raise ValueError("Found non-numeric values in 'quantity' or 'avg_cost'.") #raise an error if not a numeric value in column
     
     return df
 
@@ -28,9 +28,9 @@ def fetch_prices(tickers, start="2020-01-01", end=None) -> pd.DataFrame:
     It also return a DatFrame indexed by date and column.
     
     """
-    if isinstance(tickers, (pd.Series, pd.Index)):
+    if isinstance(tickers, (pd.Series, pd.Index)): #if tickers are Serie or Index, turn them into a list
         tickers = tickers.tolist()
-    tickers = [str(t).strip() for t in tickers if str(t).strip()]
+    tickers = [str(t).strip() for t in tickers if str(t).strip()] #convert to string and remove spaces or blank
     if not tickers:
         raise ValueError("No tickers provided to fetch_prices().")
 
@@ -52,7 +52,7 @@ def fetch_prices(tickers, start="2020-01-01", end=None) -> pd.DataFrame:
 
     data = data.rename_axis("date").sort_index()
 
-    # If everything failed (e.g., no internet), fall back to synthetic prices
+    # If everything failed (e.g., no internet), generate false price so it doesn't crash
     if data.empty or data.dropna(axis=1, how="all").shape[1] == 0:
         import numpy as np
         print("⚠️ Yahoo download failed; generating synthetic prices for offline use.")
