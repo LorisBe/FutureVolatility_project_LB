@@ -1,0 +1,10 @@
+# Core
+pandas
+numpy
+matplotlib
+
+# Data access
+yfinance
+
+# App & visualization
+streamlit
