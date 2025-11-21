@@ -42,9 +42,9 @@ def fetch_prices(tickers, start="2020-01-01", end=None) -> pd.DataFrame:
         progress=False,
         threads=True,
     )
+    #data.columns = data.columns.droplevel(1)
 
-    # Normalize yfinance output to wide [date x tickers] of adj close
-    if isinstance(data, pd.DataFrame) and "Adj Close" in data.columns:
+    if isinstance(data, pd.DataFrame) and "Adj Close" in data.columns: #normalize yfinance output
         data = data["Adj Close"]
     if isinstance(data, pd.Series):
         colname = tickers[0] if tickers else "price"
@@ -68,5 +68,19 @@ def fetch_prices(tickers, start="2020-01-01", end=None) -> pd.DataFrame:
     # Drop all-NaN columns (bad tickers) and return
     data = data.dropna(axis=1, how="all")
     return data
+
+def get_price(ticker:str):
+    ticker = ticker.upper() #Be sure that the ticker is all uppercase
+    prices = yf.download(ticker, period="max", interval="1mo")
+    print(prices.head())
+    #removing the double column header 
+    prices.columns = prices.columns.droplevel(1)
+    print(prices.columns)
+    
+    adj_close_series = pd.Series(prices["Close"])
+    print( adj_close_series.head())
  
-        
+if __name__ == "__main__":
+    get_price("BYND")
+    print(load_holdings())
+    pass
