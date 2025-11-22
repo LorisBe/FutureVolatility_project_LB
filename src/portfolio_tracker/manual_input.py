@@ -1,7 +1,20 @@
+import sys
+from pathlib import Path
+
+# Make sure Python sees the project root so "src" is importable
+ROOT = Path(__file__).resolve().parents[2]  # -> /files/capstone_project_LB
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+
 import pandas as pd
 from typing import List, Dict, Optional
 import yfinance as yf
 
+
+from src.portfolio_tracker.io import fetch_prices
+from src.portfolio_tracker.transform import portfolio_returns
+from src.portfolio_tracker.kpis import kpi_table
 
 def ask_position() -> Optional[Dict]:
     """
@@ -58,65 +71,51 @@ def ask_holdings() -> pd.DataFrame:
     print(df)
     return df
 
-def fetch_prices(
-    holdings: pd.DataFrame,
-    start: str = "2023-01-01",
-    end: Optional[str] = None,
-) -> pd.DataFrame:
+def fetch_prices_from_holdings(holdings, start="2020-01-01", end=None):
     """
-    Fetch historical prices for all tickers in the holdings DataFrame
-    using yfinance. Returns a DataFrame of adjusted close prices.
+    FORCE correct price format: wide [date x tickers] with adjusted close only.
     """
-    tickers = holdings["ticker"].astype(str).unique().tolist()
-    if not tickers:
-        raise ValueError("No tickers found in holdings.")
+    tickers = holdings["ticker"].tolist()
 
-    print(f"\nFetching prices for: {tickers}")
-    
     data = yf.download(
-        tickers,         
+        tickers,
         start=start,
         end=end,
         auto_adjust=True,
         progress=False,
+        threads=True,
     )
 
-    # MultiIndex case: ('Adj Close', ticker)
+    # If yfinance returns multi-index OHLCV, select the 'Close' level
     if isinstance(data.columns, pd.MultiIndex):
-        if "Adj Close" in data.columns.levels[0]:
-            data = data["Adj Close"]
+        data = data["Close"]
 
-    # Single-level case with 'Adj Close'
-    if isinstance(data, pd.DataFrame) and "Adj Close" in data.columns:
-        data = data["Adj Close"]
+    # Ensure correct ordering and fill missing values
+    data = data.sort_index().ffill()
 
-    # Ensure we always return a DataFrame
-    if isinstance(data, pd.Series):
-        data = data.to_frame()
-
-    print("\n✅ Prices downloaded (head):")
-    print(data.head())
     return data
 
 if __name__ == "__main__":
-    # Simple manual test
-    print("\n=== Manual Input Test ===")
-    try:
-        holdings_df = ask_holdings()
-    except Exception as e:
-        print(f"\n❌ Error while entering holdings: {e}")
-        raise SystemExit(1)
+    print("\n=== Manual portfolio test ===\n")
 
-    print("\n=== Final Holdings DataFrame ===")
-    print(holdings_df)
+    # 1) Ask user for holdings
+    holdings = ask_holdings()
 
+    print("\n=== Holdings DataFrame ===")
+    print(holdings)
 
-    try:
-        prices_df = fetch_prices(holdings_df, start="2023-01-01")      #try to fetch prices with yfinance
-        print("\n=== Final Prices DataFrame (head) ===")
-        print(prices_df.head())
-    except Exception as e:
-        print(f"\n⚠️ Could not fetch prices: {e}")
+    # 2) Fetch prices using your existing fetch_prices() via our wrapper
+    prices = fetch_prices_from_holdings(holdings, start="2020-01-01")
 
-    print("\n=== Program finished ===")
-    
+    print("\n=== Prices DataFrame (head) ===")
+    print(prices.head())
+
+    # 3) Compute portfolio daily returns
+    port_ret = portfolio_returns(holdings, prices)
+    print("\n=== Portfolio daily returns (head) ===")
+    print(port_ret.head())
+
+    # 4) Compute KPIs
+    kpis = kpi_table(port_ret)
+    print("\n=== KPI table ===")
+    print(kpis)
