@@ -15,6 +15,7 @@ import yfinance as yf
 from src.portfolio_tracker.io import fetch_prices
 from src.portfolio_tracker.transform import portfolio_returns
 from src.portfolio_tracker.kpis import kpi_table
+from src.portfolio_tracker.risk_models import build_vol_dataset
 
 def ask_position() -> Optional[Dict]:
     """
@@ -119,3 +120,11 @@ if __name__ == "__main__":
     kpis = kpi_table(port_ret)
     print("\n=== KPI table ===")
     print(kpis)
+
+    print("\n=== Building ML dataset (X, y) ===")
+X, y = build_vol_dataset(port_ret)
+
+print("X shape:", X.shape)
+print("y shape:", y.shape)
+print("\nX head:\n", X.head())
+print("\ny head:\n", y.head())
