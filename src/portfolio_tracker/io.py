@@ -55,7 +55,7 @@ def fetch_prices(tickers, start="2020-01-01", end=None) -> pd.DataFrame:
     # If everything failed (e.g., no internet), generate false price so it doesn't crash
     if data.empty or data.dropna(axis=1, how="all").shape[1] == 0:
         import numpy as np
-        print("⚠️ Yahoo download failed; generating synthetic prices for offline use.")
+        print("Yahoo download failed; generating synthetic prices for offline use.")
         dates = pd.date_range(start, end or pd.Timestamp.today(), freq="B")
         rng = np.random.default_rng(0)
         fake = pd.DataFrame(index=dates)
