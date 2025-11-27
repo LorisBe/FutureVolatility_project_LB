@@ -103,6 +103,27 @@ def main():
     latest_features = X.iloc[[-1]]
     next_vol = float(rf_model.predict(latest_features)[0])
     print(f"\nPredicted next-week annualized volatility: {next_vol:0.4f}")
+        
+    TRADING_DAYS_PER_YEAR = 252 #will be used tocompute next week vol
+    horizon_days = 5
+
+    sigma_5d = next_vol * (horizon_days / TRADING_DAYS_PER_YEAR) ** 0.5
+    sigma_5d_pct = sigma_5d * 100
+    tickers_list = holdings["ticker"].astype(str).tolist() #current portfolio value (using latest prices) and holdings
+    latest_prices = prices.loc[prices.index.max(), tickers_list]
+    qty = holdings.set_index("ticker").loc[tickers_list, "quantity"]
+    current_value = float((qty.values * latest_prices.values).sum()) #compute actual value of portfolio
+
+    value_up = current_value * (1 + sigma_5d) #estimate if goes upp
+    value_down = current_value * (1 - sigma_5d) #same but goes down
+
+    print(f"\nApproximate 5-day volatility (1σ): {sigma_5d_pct:0.2f}%")
+    print(
+        "Based on this, over the next 5 trading days the portfolio value could typically\n"
+        f"move about ±{sigma_5d_pct:0.2f}% around its current value.\n"
+        f"Current value ≈ {current_value:0.2f}\n"
+        f"Value could range between ≈ [{value_down:0.2f}, {value_up:0.2f}]"
+    )
 
     print("\nDone.")
 
