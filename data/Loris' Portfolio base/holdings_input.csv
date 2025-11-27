@@ -1,0 +1,5 @@
+account_id,asset_type,ticker,currency,quantity,avg_cost
+acc1,Crypto,XRP-USD,USD,61.722937,2.2
+acc1,Crypto,BTC-USD,USD,0.000681,83682.0
+acc1,Equity,NVDA,USD,2.619475,175.0
+acc1,Equity,SPY,USD,17.481,523.0

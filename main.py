@@ -38,21 +38,29 @@ def main():
     holdings = ask_holdings()
     print("\nHoldings entered:")
     print(holdings)
+    holdings_path = data_dir / "holdings_input.csv" #save the holdings in a CSV
+    holdings.to_csv(holdings_path, index=False)
+    print(f"\nSaved holdings to: {holdings_path}")
 
-
-    # 2) Fetch prices
-    tickers = holdings["ticker"].astype(str)
+    tickers = holdings["ticker"].astype(str) #fetch prices of holdings
     print(f"\nFetching prices for tickers: {list(tickers)}")
     prices = fetch_prices_from_holdings(holdings, start="2020-01-01")
     source = prices.attrs.get("source", "Yahoo")
     print(f"Price source: {source}")
     print("\nPrices (head):")
-    print(prices.head)
+    print(prices.head())
+    prices_path = data_dir / "prices_used_by_model.csv" #save the prices of holdings
+    prices.to_csv(prices_path, index=True)
+    print(f"Saved full price data to: {prices_path}")
 
     # 3) Portfolio returns, equity, KPIs
     port_ret = portfolio_returns(holdings, prices)
     equity = (1 + port_ret).cumprod()
     kpis = kpi_table(port_ret)
+    port_ret_path = data_dir / "portfolio_returns.csv"
+    port_ret.to_csv(port_ret_path, header=["portfolio_return"])
+    print(f"Saved portfolio returns to: {port_ret_path}")
+
 
     print("\n=== Portfolio KPIs ===")
     print(kpis.to_string(float_format=lambda x: f"{x:0.4f}"))
@@ -85,6 +93,17 @@ def main():
     # 4) Build ML dataset and train models
     X, y = build_vol_dataset(port_ret)
     results, models = train_and_evaluate_all(X, y, train_frac=0.8)
+    X_path = data_dir / "vol_features_X.csv"
+    y_path = data_dir / "vol_target_y.csv"
+    X.to_csv(X_path, index=True)
+    y.to_csv(y_path, header=["rv_next_5d"])
+    print(f"Saved ML features to: {X_path}")
+    print(f"Saved ML target to:   {y_path}")
+
+    model_results_path = data_dir / "ml_model_results.csv"
+    results.to_csv(model_results_path, index=True)
+    print(f"Saved model comparison to: {model_results_path}")
+
 
     print("\n=== Volatility Forecast Models ===")
     print(results.to_string(float_format=lambda x: f"{x:0.6f}"))
