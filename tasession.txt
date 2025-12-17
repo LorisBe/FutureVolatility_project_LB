@@ -1,8 +1,0 @@
-we have to have a "main.py" file that run the code
-note book have to be in a notebook
-output need to bw saved somewhere
-need a result file
-conda : the requirement they need ,has to be working!!!!
-need to run command in terminal : conda env export > envrinmmenent.yml
-
-main.py need to have a main() function that will be run by ta and then they will evaluate it, it need to work as a whole
